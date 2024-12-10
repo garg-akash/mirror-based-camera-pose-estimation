@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\gargs\Documents\int\mirror-based-camera-pose-estimation\opencv\build\CMakeFiles\18e418163021955e9aa8cdd95e47c1ef\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{B7DAFC9A-4777-3FCB-8807-A9C3D648960D}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

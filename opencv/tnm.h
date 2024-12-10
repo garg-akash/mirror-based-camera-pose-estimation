@@ -45,6 +45,66 @@
 
 #include "sub_solveP3P.h"
 
+void printMatElements1(const cv::Mat& mat) {
+    // Iterate over each element of the matrix
+    for (int i = 0; i < mat.rows; ++i) {
+        for (int j = 0; j < mat.cols; ++j) {
+            // Access the element at (i, j)
+            std::cout << mat.at<double>(i, j) << " "; // Assuming double type; adjust as needed
+        }
+        std::cout << std::endl; // Move to the next line after each row
+    }
+}
+
+void printMat1(const cv::Mat& mat) {
+    if (mat.empty()) {
+        std::cerr << "The matrix is empty!" << std::endl;
+        return;
+    }
+
+    int depth = mat.depth();
+    int channels = mat.channels();
+
+    std::cout << "Matrix size: " << mat.size() << std::endl;
+    std::cout << "Matrix type: " << mat.type() << " (Depth: " << depth << ", Channels: " << channels << ")" << std::endl;
+
+    for (int i = 0; i < mat.rows; ++i) {
+        for (int j = 0; j < mat.cols; ++j) {
+            std::cout << "(";
+            for (int k = 0; k < channels; ++k) {
+                switch (depth) {
+                    case CV_8U:
+                        std::cout << (int)mat.at<cv::Vec<uchar, 2>>(i, j)[k];
+                        break;
+                    case CV_8S:
+                        std::cout << (int)mat.at<cv::Vec<schar, 2>>(i, j)[k];
+                        break;
+                    case CV_16U:
+                        std::cout << mat.at<cv::Vec<ushort, 2>>(i, j)[k];
+                        break;
+                    case CV_16S:
+                        std::cout << mat.at<cv::Vec<short, 2>>(i, j)[k];
+                        break;
+                    case CV_32S:
+                        std::cout << mat.at<cv::Vec<int, 2>>(i, j)[k];
+                        break;
+                    case CV_32F:
+                        std::cout << mat.at<cv::Vec<float, 2>>(i, j)[k];
+                        break;
+                    case CV_64F:
+                        std::cout << mat.at<cv::Vec<double, 2>>(i, j)[k];
+                        break;
+                    default:
+                        std::cerr << "Unsupported matrix depth" << std::endl;
+                        return;
+                }
+                if (k < channels - 1) std::cout << ", ";
+            }
+            std::cout << ") ";
+        }
+        std::cout << std::endl;
+    }
+}
 /**
  * Estimate the relative position of the camera and the reference as well as the mirror parameters.
  *
@@ -93,6 +153,7 @@ inline void sub_tnm_orth(const std::vector< std::vector<cv::Mat> > & Cp_candidat
   for(unsigned int i=0 ; i<num_of_mirror_poses ; i++) {
     num_of_combinations *= Cp_candidates[i].size();
   }
+  std::cout << "Num comb : " << num_of_combinations << "\n";
 
 
   // Create "combination" matrix (num_of_combinations x num_of_mirror_poses).
@@ -101,16 +162,28 @@ inline void sub_tnm_orth(const std::vector< std::vector<cv::Mat> > & Cp_candidat
   for(int i=0 ; i<combinations.rows ; i++) {
     combinations.at<int>(i) = i;
   }
+  std::cout << "initial comb : ";
+  printMat1(combinations);
+  std::cout << "\n";
   for(unsigned int i=1 ; i<num_of_mirror_poses ; i++) {
     cv::Mat tmp(combinations.rows * Cp_candidates[i].size(), i+1, CV_32S);
+    std::cout << i << " : tmp";
+    printMat1(tmp);
+    std::cout << "\n";
     for(unsigned int j=0 ; j<Cp_candidates[i].size() ; j++) {
       cv::Mat t(tmp(cv::Range(combinations.rows*j,combinations.rows*(j+1)),cv::Range(0,combinations.cols)));
       combinations.copyTo(t);
     }
     combinations = tmp;
+    std::cout << i << " : comb - 1";
+    printMat1(combinations);
+    std::cout << "\n";
     for(int j=0 ; j<combinations.rows ; j++) {
       combinations.at<int>(j,i) = j / (combinations.rows/Cp_candidates[i].size());
     }
+    std::cout << i << " : comb - 2";
+    printMat1(combinations);
+    std::cout << "\n";
   }
   CV_Assert(num_of_combinations == (unsigned int)combinations.rows);
   CV_Assert(num_of_mirror_poses == (unsigned int)combinations.cols);
@@ -269,11 +342,25 @@ inline void tnm(const cv::Mat & Xp, const std::vector<cv::Mat> & q, const cv::Ma
   std::vector< std::vector<cv::Mat> > Cp_candidates(q.size());
   for(unsigned int i=0 ; i<q.size() ; i++) {
     sub_solveP3P(Xp, q[i], in_param, Cp_candidates[i]);
+    std::cout << i << " sz : " << Cp_candidates[i].size() << "\n";
+    // size_t N = Cp_candidates[i].size();
+    // for (size_t j = 0; j < N; j++)
+    // {
+    //   std::cout << j << " : \n";
+    //   printMatElements(Cp_candidates[i][j]);
+    // }
+    
   }
 
   std::vector<cv::Mat> Cp;
   sub_tnm_orth(Cp_candidates, Cp);
-
+  std::cout << "cp sz " << Cp.size();
+  for(int i = 0; i < Cp.size(); i++)
+  {
+    std::cout << i << ":";
+    printMat1(Cp[i]);
+    std::cout << "\n";
+  }
   sub_tnm_rt(Xp, Cp, R, T, n, d);
 }
 

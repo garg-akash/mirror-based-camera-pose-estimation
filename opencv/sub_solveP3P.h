@@ -41,6 +41,65 @@
 #include <vector>
 #include <opencv2/core/core.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
+void printMatElements(const cv::Mat& mat) {
+    // Iterate over each element of the matrix
+    for (int i = 0; i < mat.rows; ++i) {
+        for (int j = 0; j < mat.cols; ++j) {
+            // Access the element at (i, j)
+            std::cout << mat.at<double>(i, j) << " "; // Assuming double type; adjust as needed
+        }
+        std::cout << std::endl; // Move to the next line after each row
+    }
+}
+void printMat(const cv::Mat& mat) {
+    if (mat.empty()) {
+        std::cerr << "The matrix is empty!" << std::endl;
+        return;
+    }
+
+    int depth = mat.depth();
+    int channels = mat.channels();
+
+    std::cout << "Matrix size: " << mat.size() << std::endl;
+    std::cout << "Matrix type: " << mat.type() << " (Depth: " << depth << ", Channels: " << channels << ")" << std::endl;
+
+    for (int i = 0; i < mat.rows; ++i) {
+        for (int j = 0; j < mat.cols; ++j) {
+            std::cout << "(";
+            for (int k = 0; k < channels; ++k) {
+                switch (depth) {
+                    case CV_8U:
+                        std::cout << " 1 " << (int)mat.at<cv::Vec<uchar, 2>>(i, j)[k];
+                        break;
+                    case CV_8S:
+                        std::cout << " 2 " << (int)mat.at<cv::Vec<schar, 2>>(i, j)[k];
+                        break;
+                    case CV_16U:
+                        std::cout << " 3 " << mat.at<cv::Vec<ushort, 2>>(i, j)[k];
+                        break;
+                    case CV_16S:
+                        std::cout << " 4 " << mat.at<cv::Vec<short, 2>>(i, j)[k];
+                        break;
+                    case CV_32S:
+                        std::cout << " 5 " << mat.at<cv::Vec<int, 2>>(i, j)[k];
+                        break;
+                    case CV_32F:
+                        std::cout << " 6 " << mat.at<cv::Vec<float, 2>>(i, j)[k];
+                        break;
+                    case CV_64F:
+                        std::cout << " 7 " << mat.at<cv::Vec<double, 2>>(i, j)[k];
+                        break;
+                    default:
+                        std::cerr << "Unsupported matrix depth" << std::endl;
+                        return;
+                }
+                if (k < channels - 1) std::cout << ", ";
+            }
+            std::cout << ") ";
+        }
+        std::cout << std::endl;
+    }
+}
 
 /**
  * Solves P3P (projective-three-points) problem
@@ -63,11 +122,22 @@ inline void sub_solveP3P(const cv::Mat & Xp,
 
   cv::Mat q_t(3, 3, CV_64FC(1), cvScalar(1));
   q_t(cv::Range(0,2), cv::Range::all()) = q.t();
+  std::cout << "printing  q\n";
+  printMatElements(q);
+
+  std::cout << "printing  q_t\n";
+  printMatElements(q_t);
 
   const cv::Mat Xp_t = Xp.t();
 
-  const cv::Mat ovec = in_param.inv() * q_t;
+  std::cout << "printing  x\n";
+  printMatElements(Xp);
 
+  std::cout << "printing  xt\n";
+  printMatElements(Xp_t);
+
+  const cv::Mat ovec = in_param.inv() * q_t;
+  std::cout << "ok1\n";
   cv::Mat novec(ovec);
   novec(cv::Range::all(), cv::Range(0,1)) /= cv::norm(ovec(cv::Range::all(), cv::Range(0,1)));
   novec(cv::Range::all(), cv::Range(1,2)) /= cv::norm(ovec(cv::Range::all(), cv::Range(1,2)));
@@ -99,21 +169,28 @@ inline void sub_solveP3P(const cv::Mat & Xp,
     + 4 * (a*a - b*b) * (a*a - b*b + c*c) * cosc;
 
   const double D0 = 4 * a*a * c*c * cosb*cosb - (a*a - b*b + c*c) * (a*a - b*b + c*c);
+  std::cout << "ok2\n";
 
   const cv::Mat D = (cv::Mat_<double>(1,5) << D0/D4, D1/D4, D2/D4, D3/D4, D4/D4);
   cv::Mat u;
   cv::solvePoly(D, u);
-
+  printMat(u);
   std::vector<double> ru_;
   for(int r=0 ; r<u.rows ; r++) {
+    std::cout << r << "\t" << u.at<double>(r,1);
     if( fabs(u.at<double>(r,1)) < 1e-8 ) {
+      std::cout << " pushed\n";
       ru_.push_back(u.at<double>(r,0));
     }
+    std::cout << "\n";
   }
+  std::cout << "\ns : " << ru_.size() << "\n";
   const cv::Mat ru = cv::Mat(1, ru_.size(), CV_64F, &(ru_[0])).t();
+  std::cout << "ok21\n";
 
   cv::Mat v(ru.rows, 1, CV_64FC(1));
   cv::Mat s1(ru.rows, 1, CV_64FC(1));
+  std::cout << "ok3\n";
   for(int i=0 ; i<ru.rows ; i++) {
     double temp1 = - 1 * ((a*a - b*b - c*c) * ru.at<double>(i) * ru.at<double>(i) 
                           + 2 * (b*b - a*a) * cosc * ru.at<double>(i) 
@@ -121,10 +198,12 @@ inline void sub_solveP3P(const cv::Mat & Xp,
     double temp2 = 2 * c*c * (cosa * ru.at<double>(i) - cosb);
     v.at<double>(i) = temp1 / temp2;
   }
+  std::cout << "ok4\n";
   for(int i=0 ; i<ru.rows ; i++) {
     double temp = a*a / (ru.at<double>(i)*ru.at<double>(i) + v.at<double>(i)*v.at<double>(i) - 2 * ru.at<double>(i) * v.at<double>(i) * cosa);
     s1.at<double>(i) = sqrt(temp);
   }
+  std::cout << "ok5\n";
 
   const cv::Mat s2 = s1.mul(ru);
   const cv::Mat s3 = s1.mul(v);

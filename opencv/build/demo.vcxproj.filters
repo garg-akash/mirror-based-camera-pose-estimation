@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\gargs\Documents\int\mirror-based-camera-pose-estimation\opencv\demo.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Users\gargs\Documents\int\mirror-based-camera-pose-estimation\opencv\sub_solveP3P.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\gargs\Documents\int\mirror-based-camera-pose-estimation\opencv\tnm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\gargs\Documents\int\mirror-based-camera-pose-estimation\opencv\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{3D3A41DE-3AE0-32F4-A531-67FD0B2CB238}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{423518D2-ED03-3031-97F1-31F0137E7B07}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

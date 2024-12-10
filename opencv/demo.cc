@@ -48,7 +48,7 @@
  * @param filename [in] filename
  * @param m [out] matrix
  */
-void load(const char * filename, cv::Mat & m) {
+void load(std::string filename, cv::Mat & m) {
   CV_Assert(m.type() == CV_64FC(1));
 
   std::cout << "loading '" << filename << "' = ";
@@ -65,6 +65,26 @@ void load(const char * filename, cv::Mat & m) {
   ifs.close();
 
   std::cout << m << "\n\n";
+}
+
+void saveMatToTxt(const cv::Mat& mat, const std::string& filename) {
+  std::ofstream file(filename);
+
+  if (file.is_open()) {
+    for (int i = 0; i < mat.rows; ++i) {
+      for (int j = 0; j < mat.cols; ++j) {
+        file << mat.at<double>(i, j);
+        if (j < mat.cols - 1) {
+          file << " ";
+        }
+      }
+      file << std::endl;
+    }
+    file.close();
+  } 
+  else {
+    std::cerr << "Unable to open file: " << filename << std::endl;
+  }
 }
 
 // returns average reprojection error, for evaluation only.
@@ -118,11 +138,20 @@ int main() {
   cv::Mat camera(3, 3, CV_64FC(1));
 
   // load input data from files
-  load("data/input1.txt", input[0]);
-  load("data/input2.txt", input[1]);
-  load("data/input3.txt", input[2]);
-  load("data/model.txt", model);
+  load("data/input1_3p.txt", input[0]);
+  load("data/input2_3p.txt", input[1]);
+  load("data/input3_3p.txt", input[2]);
+  load("data/model_3p.txt", model);
   load("data/camera.txt", camera);
+
+  // std::string pre = "data/96/";
+  // std::string cam_num = "1";
+
+  // load(pre + "cam" + cam_num + "x11_.txt", input[0]);
+  // load(pre + "cam" + cam_num + "x12_.txt", input[1]);
+  // load(pre + "cam" + cam_num + "x13_.txt", input[2]);
+  // load(pre + "model_.txt", model);
+  // load(pre + "multi_camera_matrix_" + cam_num + ".txt", camera);
 
   // calibration
   cv::Mat R, T, n, d;
@@ -142,6 +171,10 @@ int main() {
             << "d1 = " << d.at<double>(0) << "\n\n"
             << "d2 = " << d.at<double>(1) << "\n\n"
             << "d3 = " << d.at<double>(2) << "\n\n";
+  // saveMatToTxt(R,pre + "cam" + cam_num + "x1R.txt");
+  // saveMatToTxt(T,pre + "cam" + cam_num + "x1T.txt");
+  // saveMatToTxt(n,pre + "cam" + cam_num + "x1n.txt");
+  // saveMatToTxt(d,pre + "cam" + cam_num + "x1d.txt");
 
   return 0;
 }
